@@ -1,0 +1,58 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
+const app = express();
+
+// MongoDB connection
+mongoose.connect('mongodb://localhost:27017/orderDB', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+// Order Schema
+const orderSchema = new mongoose.Schema({
+  orderId: String,
+  customerName: String,
+  product: String,
+  // Add more fields as needed
+});
+
+const Order = mongoose.model('Order', orderSchema);
+
+app.use(bodyParser.json());
+app.use(cors());
+
+// API endpoints
+app.get('/orders', async (req, res) => {
+  try {
+    const orders = await Order.find();
+    res.json(orders);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
+app.post('/orders', async (req, res) => {
+  const { orderId, customerName, product } = req.body;
+
+  const newOrder = new Order({
+    orderId,
+    customerName,
+    product,
+  });
+
+  try {
+    await newOrder.save();
+    res.status(201).send('Order created successfully');
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
+// Start server
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(Server running on port ${PORT});
+});
